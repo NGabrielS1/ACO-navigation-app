@@ -99,13 +99,13 @@ def brute_force(dist_matrix):
     
     return best_dist, (end_time-start_time)
 
-def test():
+def test(max):
     aco_dist = []
     aco_time = []
     bf_dist = []
     bf_time = []
 
-    for i in range(48-3):
+    for i in range(max-3):
         print(f"Cities: {i+3}")
         dist_matrix = get_dist_matrix(i+3)
         a_dist, a_time = ant_colony_optimization(dist_matrix, init_p, alpha, beta, evap_rate, added_p, ants)
@@ -116,7 +116,7 @@ def test():
         bf_time.append(b_time)
     print("Done!")
     
-    list_o_numbers = [3+i for i in range(48-3)]
+    list_o_numbers = [3+i for i in range(max-3)]
     
     plt.figure()
     plt.plot(list_o_numbers, aco_dist, label="ACO")
@@ -138,4 +138,4 @@ def test():
     plt.grid(True)
     plt.show()
 
-test()
+test(11)
