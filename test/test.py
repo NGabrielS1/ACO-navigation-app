@@ -9,7 +9,7 @@ from itertools import permutations
 seed = 67
 random.seed(seed)
 np.random.seed(seed)
-data = pd.read_csv("data.csv")
+data = pd.read_csv("test/data.csv")
 
 init_p = 0.2
 alpha = 1
