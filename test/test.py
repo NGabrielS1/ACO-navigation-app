@@ -28,7 +28,7 @@ def get_dist_matrix(cities: int) -> pd.DataFrame:
             dist = 0
             if city1 != city2:
                 dist = float(data[(data["Num Cities"]==float(cities)) & (data["Start"]==city1) & (data["End"]==city2)]["Distance"].item().replace(" km", ""))
-            dist_matrix[city1][city2] = dist
+            dist_matrix.loc[city1, city2] = dist
 
     return dist_matrix
 
