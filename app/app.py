@@ -14,6 +14,9 @@ from PIL import Image, ImageFont, ImageDraw
 class App(ctk.CTk):
 
     #variables
+    width = 864
+    height = 614.4
+
     start = None
     Priority = []
     Packages = []
@@ -33,8 +36,40 @@ class App(ctk.CTk):
         self.title("EasyNav: Easy Navigation Software")
         self.geometry(f"{self.width}x{self.height}")
         self.resizable(0, 0)
-        self.configure(fg_color='#f5f5f7')
+        self.configure(fg_color='#f3f2f2')
         current_path = os.path.dirname(os.path.realpath(__file__))
+
+        #images
+        self.header_logo = ctk.CTkImage(Image.open(current_path+"/assets/logo_lpb.png"), size=(363, 67.2))
+        #fonts
+        self.REGULAR = current_path+"/assets/Nexa-ExtraLight.ttf"
+        self.BOLD = current_path+"/assets/Nexa-Heavy.ttf"
+
+        #navigation page
+        self.header = ctk.CTkFrame(self, height=79.2, width=self.width, fg_color="#f3f2f2", corner_radius=0)
+        self.seperator1 = ctk.CTkFrame(self, height=2.4, width=self.width, fg_color="black", corner_radius=0)
+        self.inputbar = ctk.CTkFrame(self, height=532.8, width=183, fg_color="#f3f2f2", corner_radius=0)
+        self.seperator2 = ctk.CTkFrame(self, height=532.8, width=2.4, fg_color="black", corner_radius=0)
+        self.map = ctk.CTkFrame(self, height=532.8, width=506.4, fg_color="green", corner_radius=0)
+        self.seperator3 = ctk.CTkFrame(self, height=532.8, width=2.4, fg_color="black", corner_radius=0)
+        self.outputbar = ctk.CTkFrame(self, height=532.8, width=183, fg_color="#dbd4d4", corner_radius=0)
+
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=0)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=0)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_columnconfigure(3, weight=0)
+        self.grid_columnconfigure(4, weight=0)
+
+        self.header.grid(row=0, column=0, columnspan=5, sticky="nsew")
+        self.seperator1.grid(row=1, column=0, columnspan=5, sticky="nsew")
+        self.inputbar.grid(row=2, column=0, sticky="nsew")
+        self.seperator2.grid(row=2, column=1, sticky="nsew")
+        self.map.grid(row=2, column=2, sticky="nsew")
+        self.seperator3.grid(row=2, column=3, sticky="nsew")
+        self.outputbar.grid(row=2, column=4, sticky="nsew")
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt", pad_right=0):
         #load font
