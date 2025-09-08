@@ -45,19 +45,44 @@ class App(ctk.CTk):
         current_path = os.path.dirname(os.path.realpath(__file__))
 
         #images
-        self.header_logo = ctk.CTkImage(Image.open(current_path+"/assets/logo_lpb.png"), size=(363, 67.2))
+        self.header_logo = ctk.CTkImage(Image.open(current_path+"/assets/logo_lpb.png").resize((213, 79), Image.LANCZOS), size=(213, 79))
         #fonts
         self.REGULAR = current_path+"/assets/Nexa-ExtraLight.ttf"
         self.BOLD = current_path+"/assets/Nexa-Heavy.ttf"
 
         #navigation page
-        self.header = ctk.CTkFrame(self, height=79.2, width=self.width, fg_color="#f3f2f2", corner_radius=0)
+        self.header = ctk.CTkFrame(self, height=79, width=self.width, fg_color="#f3f2f2", corner_radius=0)
         self.seperator1 = ctk.CTkFrame(self, height=2.4, width=self.width, fg_color="black", corner_radius=0)
-        self.inputbar = ctk.CTkFrame(self, height=532.8, width=183, fg_color="#f3f2f2", corner_radius=0)
-        self.seperator2 = ctk.CTkFrame(self, height=532.8, width=2.4, fg_color="black", corner_radius=0)
-        self.map = ctk.CTkFrame(self, height=532.8, width=506.4, fg_color="green", corner_radius=0)
-        self.seperator3 = ctk.CTkFrame(self, height=532.8, width=2.4, fg_color="black", corner_radius=0)
-        self.outputbar = ctk.CTkFrame(self, height=532.8, width=183, fg_color="#dbd4d4", corner_radius=0)
+        self.inputbar = ctk.CTkFrame(self, height=533, width=183, fg_color="#f3f2f2", corner_radius=0)
+        self.seperator2 = ctk.CTkFrame(self, height=533, width=2.4, fg_color="black", corner_radius=0)
+        self.map = ctk.CTkFrame(self, height=533, width=506.4, fg_color="green", corner_radius=0)
+        self.seperator3 = ctk.CTkFrame(self, height=533, width=2.4, fg_color="black", corner_radius=0)
+        self.outputbar = ctk.CTkFrame(self, height=533, width=183, fg_color="#dbd4d4", corner_radius=0)
+
+        #header
+        self.small_logo = ctk.CTkLabel(self.header, image=self.header_logo, width=213, height=79, text=None, fg_color="transparent")
+
+        #input bar
+        self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=None)
+        self.check_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("check dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=None)
+
+        #output bar
+        self.total_dist_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("total distance", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
+        self.total_dist_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("10 km", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
+        self.total_time_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("total time", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
+        self.total_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("5 hours\n13 mins", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=80.4)
+        self.start_time_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("start time", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
+        self.start_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("06.14", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
+        self.end_time_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("end time", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
+        self.end_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("11.27", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
+
+        self.startnav_btn = ctk.CTkButton(self.outputbar, image=self.custom_text("start nav", self.BOLD, "#ffffff", 18, "#ff4848"), text=None, fg_color="#ff4848", hover_color="#ff4848", width=148.2, height=35.4, corner_radius=28.8 ,command=None)
+
+        #map
+        self.map_widget = TkinterMapView(self.map, height=532.8, width=506.4)
+        self.map_widget.set_position(42.48144, -71.15103)
+        self.map_widget.set_tile_server("https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", max_zoom=22)
+        self.map_widget.set_zoom(19)
 
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=0)
@@ -75,6 +100,53 @@ class App(ctk.CTk):
         self.map.grid(row=2, column=2, sticky="nsew")
         self.seperator3.grid(row=2, column=3, sticky="nsew")
         self.outputbar.grid(row=2, column=4, sticky="nsew")
+
+        self.header.grid_columnconfigure(0, weight=0)
+        self.header.grid_columnconfigure(1, weight=1)
+        self.header.grid_columnconfigure(2, weight=0)
+
+        self.small_logo.grid(row=0, column=2, padx=(0, 10))
+
+        self.inputbar.grid_rowconfigure(0, weight=0)
+        self.inputbar.grid_rowconfigure(1, weight=0)
+        self.inputbar.grid_rowconfigure(2, weight=1)
+        self.inputbar.grid_rowconfigure(3, weight=0)
+
+        self.inputbar.grid_columnconfigure(0, weight=1)
+        self.inputbar.grid_columnconfigure(1, weight=0)
+        self.inputbar.grid_columnconfigure(2, weight=1)
+        self.inputbar.grid_propagate(False)
+
+        self.input_btn.grid(row=0, column=1, pady=(50, 10), sticky="")
+        self.check_btn.grid(row=1, column=1, pady=10)
+
+        self.outputbar.grid_rowconfigure(0, weight=0)
+        self.outputbar.grid_rowconfigure(1, weight=0)
+        self.outputbar.grid_rowconfigure(2, weight=0)
+        self.outputbar.grid_rowconfigure(3, weight=0)
+        self.outputbar.grid_rowconfigure(4, weight=0)
+        self.outputbar.grid_rowconfigure(5, weight=0)
+        self.outputbar.grid_rowconfigure(6, weight=0)
+        self.outputbar.grid_rowconfigure(7, weight=0)
+        self.outputbar.grid_rowconfigure(8, weight=0)
+
+        self.outputbar.grid_columnconfigure(0, weight=1)
+        self.outputbar.grid_columnconfigure(1, weight=0)
+        self.outputbar.grid_columnconfigure(2, weight=1)
+        self.outputbar.grid_propagate(False)
+
+        self.total_dist_lbl.grid(row=0, column=1, pady=(50, 10))
+        self.total_dist_val.grid(row=1, column=1)
+        self.total_time_lbl.grid(row=2, column=1, pady=10)
+        self.total_time_val.grid(row=3, column=1, pady=(0,20))
+        self.start_time_lbl.grid(row=4, column=1, pady=10)
+        self.start_time_val.grid(row=5, column=1)
+        self.end_time_lbl.grid(row=6, column=1, pady=10)
+        self.end_time_val.grid(row=7, column=1)
+
+        self.startnav_btn.grid(row=8, column=1, pady=(30, 0))
+
+        self.map_widget.grid(row=0, column=0, sticky="nsew")
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt", pad_right=0):
         #load font
