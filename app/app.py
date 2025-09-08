@@ -70,6 +70,10 @@ class App(ctk.CTk):
         #input bar
         self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_destinations)
         self.check_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("check dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.edit_destinations)
+        self.start_lbl = ctk.CTkLabel(self.inputbar, image=self.custom_text("Add Start", self.BOLD, "#727272", 12.7, "#f3f2f2"), text=None, fg_color="#f3f2f2", width=148.2, height=14.4)
+        self.start_value = ctk.CTkEntry(self.inputbar, placeholder_text="required", width=148.2, height=35.4, font=("Helvetica", 19.8))
+        self.end_lbl = ctk.CTkLabel(self.inputbar, image=self.custom_text("Add End", self.BOLD, "#727272", 12.7, "#f3f2f2"), text=None, fg_color="#f3f2f2", width=148.2, height=14.4)
+        self.end_value = ctk.CTkEntry(self.inputbar, placeholder_text="required", width=148.2, height=35.4, font=("Helvetica", 19.8))
 
         #output bar
         self.total_dist_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("total distance", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
@@ -112,18 +116,17 @@ class App(ctk.CTk):
 
         self.small_logo.grid(row=0, column=2, padx=(0, 10))
 
-        self.inputbar.grid_rowconfigure(0, weight=0)
-        self.inputbar.grid_rowconfigure(1, weight=0)
-        self.inputbar.grid_rowconfigure(2, weight=1)
-        self.inputbar.grid_rowconfigure(3, weight=0)
-
         self.inputbar.grid_columnconfigure(0, weight=1)
         self.inputbar.grid_columnconfigure(1, weight=0)
         self.inputbar.grid_columnconfigure(2, weight=1)
         self.inputbar.grid_propagate(False)
 
         self.input_btn.grid(row=0, column=1, pady=(50, 10), sticky="")
-        self.check_btn.grid(row=1, column=1, pady=10)
+        self.check_btn.grid(row=1, column=1, pady=(10, 50))
+        self.start_lbl.grid(row=2, column=1, pady=(0, 10))
+        self.start_value.grid(row=3, column=1, pady=(0,20))
+        self.end_lbl.grid(row=4, column=1, pady=(0, 10))
+        self.end_value.grid(row=5, column=1)
 
         self.outputbar.grid_rowconfigure(0, weight=0)
         self.outputbar.grid_rowconfigure(1, weight=0)
