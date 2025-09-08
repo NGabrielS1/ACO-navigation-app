@@ -69,7 +69,7 @@ class App(ctk.CTk):
 
         #input bar
         self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_destinations)
-        self.check_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("check dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=None)
+        self.check_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("check dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.edit_destinations)
 
         #output bar
         self.total_dist_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("total distance", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
@@ -176,6 +176,11 @@ class App(ctk.CTk):
     
     def get_destinations(self):
         input_window = input_dest_window(self, self.maps, self.BOLD, self.REGULAR)
+        print(self.priority)
+        print(self.packages)
+    
+    def edit_destinations(self):
+        edit_window = edit_dest_window(self, self.maps, self.BOLD, self.REGULAR)
 
 #input destinations
 class input_dest_window(ctk.CTkToplevel):
@@ -220,10 +225,103 @@ class input_dest_window(ctk.CTkToplevel):
                 self.buttons[i].configure(text=self.list[i][:55])
 
     def return_destination(self, index, master):
-        if self.list[index] != "":
-            master.packages.append(self.list[index])
+        dest = self.list[index]
+        if dest != "":
+            if not dest in master.packages and not dest in master.priority:
+                master.packages.append(dest)
 
             self.destroy()
+
+#edit destinations
+class edit_dest_window(ctk.CTkToplevel):
+    width = 450
+    height = 250
+    list = []
+
+    def __init__(self, master, maps, bold_font, regular_font):
+        super().__init__(master=master)
+        self.maps = maps
+        self.title("Edit your destinations")
+        self.geometry(f"{self.width}x{self.height}")
+        self.resizable(0, 0)
+        self.configure(fg_color='#727272')
+
+        self.priority = master.priority
+        self.packages = master.packages
+        self.priority_btns = []
+        self.package_btns = []
+        self.selected = []
+
+        #widgets
+        self.prioritize_btn = ctk.CTkButton(self, image=master.custom_text("Prioritize", bold_font, "#ffffff", 14, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=133.33, height=36, corner_radius=28.8 ,command=self.prioritize)
+        self.delete_btn = ctk.CTkButton(self, image=master.custom_text("Delete", bold_font, "#ffffff", 14, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=133.33, height=36, corner_radius=28.8 ,command=self.delete)
+        self.done_btn = ctk.CTkButton(self, image=master.custom_text("Done", bold_font, "#ffffff", 14, "#ff4848"), text=None, fg_color="#ff4848", hover_color="#ff4848", width=133.33, height=36, corner_radius=28.8 ,command=lambda :self.done(master))
+        self.label = ctk.CTkLabel(self, image=master.custom_text("choose destination", bold_font, "white", 12.7, "#727272"), text=None, fg_color="#727272", height=14.4)
+        self.frame = ctk.CTkScrollableFrame(self, width=400, height=144)
+        self.frame._scrollbar.configure(height=144)
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=0)
+        self.columnconfigure(2, weight=0)
+        self.columnconfigure(3, weight=0)
+        self.columnconfigure(4, weight=1)
+
+        self.label.grid(row=0, column=1, sticky="w", pady=(10, 0), columnspan=3)
+        self.frame.grid(row=1, column=1, columnspan=3)
+        self.prioritize_btn.grid(row=2, column=1, pady=(10, 0))
+        self.delete_btn.grid(row=2, column=2, pady=(10, 0))
+        self.done_btn.grid(row=2, column=3, pady=(10, 0))
+        self.update()
+    
+    def update(self):
+        for btn in self.priority_btns:
+            btn.destroy()
+        self.priority_btns = []
+        for btn in self.package_btns:
+            btn.destroy()
+        self.package_btns = []
+
+        for i, p_package in enumerate(self.priority):
+            button = ctk.CTkButton(self.frame, text=p_package, corner_radius=None, fg_color="#e0bbbb", text_color="black", hover_color="#6c6969", width=400, height=36, command=lambda i=i: self.select(i, "priority"))
+            button.grid(row=i, column=0, pady=(0,2), sticky="we")
+            self.priority_btns.append(button)
+        num = len(self.priority)
+        for i, package in enumerate(self.packages):
+            button = ctk.CTkButton(self.frame, text=package, corner_radius=None, fg_color="#dbd4d4", text_color="black", hover_color="#6c6969", width=400, height=36, command=lambda i=i: self.select(i, "package"))
+            button.grid(row=num+i, column=0, pady=(0,2), sticky="we")
+            self.package_btns.append(button)
+        if len(self.selected):
+            if self.selected[1] == "priority":
+                self.priority_btns[self.selected[0]].configure(fg_color="#898585")
+            else:
+                self.package_btns[self.selected[0]].configure(fg_color="#898585")
+    
+    def select(self, index, type):
+        self.selected = [index,type]
+        self.update()
+    
+    def prioritize(self):
+        if len(self.selected):
+            if self.selected[1] == "priority": 
+                self.packages.append(self.priority[self.selected[0]])
+                self.priority.pop(self.selected[0])
+            else: 
+                self.priority.append(self.packages[self.selected[0]])
+                self.packages.pop(self.selected[0])
+            self.selected = []
+            self.update()
+
+    def delete(self):
+        if len(self.selected):
+            if self.selected[1] == "priority": self.priority.pop(self.selected[0])
+            else: self.packages.pop(self.selected[0])
+            self.selected = []
+            self.update()
+    
+    def done(self, master):
+        master.packages = self.packages
+        master.priority = self.priority
+        self.destroy()
 
 # Run application
 if __name__ == "__main__":
