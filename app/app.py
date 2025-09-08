@@ -29,7 +29,7 @@ class App(ctk.CTk):
 
     start = None
     priority = []
-    packages = []
+    packages = ['Third Space Pilates - Alam Sutera, Jalan Lingkar Barat Alam Sutera 15143, East Panunggangan, Tangerang City, Banten, Indonesia', 'Kedai Nasi Campur Kenanga, Alam sutra, Jalan Jalur Sutera Boulevard Ruko Palmyra Square, RT.002/RW.014, Kunciran, Tangerang City, Banten, Indonesia']
     end = None
 
     init_p = 0.2
@@ -68,7 +68,7 @@ class App(ctk.CTk):
         self.small_logo = ctk.CTkLabel(self.header, image=self.header_logo, width=213, height=79, text=None, fg_color="transparent")
 
         #input bar
-        self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_destinations)
+        self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_route)
         self.check_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("check dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.edit_destinations)
         self.start_lbl = ctk.CTkLabel(self.inputbar, image=self.custom_text("Add Start", self.BOLD, "#727272", 12.7, "#f3f2f2"), text=None, fg_color="#f3f2f2", width=148.2, height=14.4)
         self.start_value = ctk.CTkEntry(self.inputbar, placeholder_text="required", width=148.2, height=35.4, font=("Helvetica", 19.8))
@@ -184,6 +184,39 @@ class App(ctk.CTk):
     
     def edit_destinations(self):
         edit_window = edit_dest_window(self, self.maps, self.BOLD, self.REGULAR)
+    
+    def get_route(self):
+        session_token = uuid4().hex
+        autocomplete = self.maps.places_autocomplete(input_text=self.start_value.get(), session_token=session_token)
+        start_list = [i["description"] for i in autocomplete]
+        autocomplete = self.maps.places_autocomplete(input_text=self.end_value.get(), session_token=session_token)
+        end_list = [i["description"] for i in autocomplete]
+
+        self.start = start_list[0]
+        self.end = end_list[0]
+
+        dist_start = self.start
+        if len(self.priority): dist_start = self.priority[-1]
+        dist_matrix = self.get_dist_matrix(dist_start, self.packages)
+    
+    def get_dist_matrix(self, start, points):
+        points = [start] + points
+        dist_matrix = pd.DataFrame(index=points, columns=points)
+
+        for point1 in points:
+            for point2 in points:
+                dist = 0
+                if point1 != point2:
+                    if pd.notna(dist_matrix.loc[point1, point2]):
+                        dist = dist_matrix.loc[point1, point2]
+                    elif pd.notna(dist_matrix.loc[point2, point1]):
+                        dist = dist_matrix.loc[point2, point1]
+                    else:
+                        matrix = self.maps.distance_matrix(point1, point2,  mode="driving", units="metric")
+                        dist = matrix['rows'][0]['elements'][0]['distance']['value']/1000
+                dist_matrix.loc[point1, point2] = dist
+        
+        return dist_matrix
 
 #input destinations
 class input_dest_window(ctk.CTkToplevel):
