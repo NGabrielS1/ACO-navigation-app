@@ -4,6 +4,7 @@ import math
 import random
 import numpy as np
 import pandas as pd
+from uuid import uuid4
 import matplotlib.pyplot as plt
 from itertools import permutations
 
@@ -22,10 +23,14 @@ class App(ctk.CTk):
     width = 864
     height = 614.4
 
+    load_dotenv()
+    api_key = os.getenv('api_key')
+    maps = googlemaps.Client(key=api_key)
+
     start = None
-    Priority = []
-    Packages = []
-    End = None
+    priority = []
+    packages = []
+    end = None
 
     init_p = 0.2
     alpha = 1
@@ -63,7 +68,7 @@ class App(ctk.CTk):
         self.small_logo = ctk.CTkLabel(self.header, image=self.header_logo, width=213, height=79, text=None, fg_color="transparent")
 
         #input bar
-        self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=None)
+        self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_destinations)
         self.check_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("check dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=None)
 
         #output bar
@@ -168,6 +173,57 @@ class App(ctk.CTk):
             draw.text(xy=(5, 5+height/len(text)*i), text=line, font=font, fill=color, anchor=anchor)
         image = ctk.CTkImage(image, size=(width,height))
         return image
+    
+    def get_destinations(self):
+        input_window = input_dest_window(self, self.maps, self.BOLD, self.REGULAR)
+
+#input destinations
+class input_dest_window(ctk.CTkToplevel):
+    width = 450
+    height = 250
+    list = []
+
+    def __init__(self, master, maps, bold_font, regular_font):
+        super().__init__(master=master)
+        self.maps = maps
+        self.session_token = uuid4().hex
+        self.title("Choose your destinations")
+        self.geometry(f"{self.width}x{self.height}")
+        self.resizable(0, 0)
+        self.configure(fg_color='#727272')
+
+        #widgets
+        self.label = ctk.CTkLabel(self, image=master.custom_text("input destination", bold_font, "white", 12.7, "#727272"), text=None, fg_color="#727272", height=14.4)
+        self.entry = ctk.CTkEntry(self, placeholder_text="Enter Address", width=400, font=("Helvetica", 18))
+        self.entry.bind("<Return>", self.get_results)
+
+        self.button0 = ctk.CTkButton(self, text="", corner_radius=None, fg_color="#dbd4d4", text_color="black", hover_color="#6c6969", width=400, height=36, command=lambda: self.return_destination(0, master))
+        self.button1 = ctk.CTkButton(self, text="", corner_radius=None, fg_color="#dbd4d4", text_color="black", hover_color="#6c6969",width=400, height=36, command=lambda: self.return_destination(1, master))
+        self.button2 = ctk.CTkButton(self, text="", corner_radius=None, fg_color="#dbd4d4", text_color="black", hover_color="#6c6969",width=400, height=36, command=lambda: self.return_destination(2, master))
+        self.button3 = ctk.CTkButton(self, text="", corner_radius=None, fg_color="#dbd4d4", text_color="black", hover_color="#6c6969",width=400, height=36, command=lambda: self.return_destination(3, master))
+        self.buttons = [self.button0, self.button1, self.button2, self.button3]
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=0)
+        self.columnconfigure(2, weight=1)
+
+        self.label.grid(row=0, column=1, sticky="w", pady=(10, 0))
+        self.entry.grid(row=1, column=1, pady=(0, 20))
+
+    def get_results(self, event):
+        autocomplete = self.maps.places_autocomplete(input_text=self.entry.get(), session_token=self.session_token)
+        self.list = [i["description"] for i in autocomplete]
+        if len(self.list) > 0:
+            self.list = self.list[:4]
+            for i in range(len(self.list)):
+                self.buttons[i].grid(row=2+i, column=1, pady=(0,2))
+                self.buttons[i].configure(text=self.list[i][:55])
+
+    def return_destination(self, index, master):
+        if self.list[index] != "":
+            master.packages.append(self.list[index])
+
+            self.destroy()
 
 # Run application
 if __name__ == "__main__":
