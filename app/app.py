@@ -33,6 +33,7 @@ class App(ctk.CTk):
     packages = ['Third Space Pilates - Alam Sutera, Jalan Lingkar Barat Alam Sutera 15143, East Panunggangan, Tangerang City, Banten, Indonesia', 'Kedai Nasi Campur Kenanga, Alam sutra, Jalan Jalur Sutera Boulevard Ruko Palmyra Square, RT.002/RW.014, Kunciran, Tangerang City, Banten, Indonesia']
     end = None
     list_of_points = []
+    markers = []
 
     init_p = 0.2
     alpha = 1
@@ -208,30 +209,12 @@ class App(ctk.CTk):
                     dist_matrix = self.get_dist_matrix(dist_start, self.packages)
                     _, route = self.ant_colony_optimization(dist_matrix, self.init_p, self.alpha, self.beta, self.evap_rate, self.added_p, self.ants)
 
-                    #complete route and complete dist
-
-                    # #add end
-                    # matrix = self.maps.distance_matrix(route[-1], self.end,  mode="driving", units="metric")
-                    # dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
-                    # route = route + [self.end]
-
                     #add priorities if any
                     if len(self.priority):
                         #if more than one priority
                         if len(self.priority) > 1:
-                            # temp = [self.start] + self.priority
-
-                            # for pair in pairwise(temp):
-                            #     matrix = self.maps.distance_matrix(pair[0], pair[1],  mode="driving", units="metric")
-                            #     dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
-
-                            # route = [self.start] + self.priority[0:-1] + route
                             route = self.priority[0:-1] + route
                         #if only one priority
-                        # else:
-                            # matrix = self.maps.distance_matrix(self.start, self.priority[0],  mode="driving", units="metric")
-                            # dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
-                            # route = [self.start] + route
                     else:
                         route.pop(0)
                     
@@ -254,6 +237,16 @@ class App(ctk.CTk):
                     bounds = info[0]["bounds"]
                     self.map_widget.fit_bounding_box((bounds['northeast']['lat'],bounds['southwest']['lng']), (bounds['southwest']['lat'],bounds['northeast']['lng']))
                     path = self.map_widget.set_path(self.list_of_points)
+
+                    #put markers
+                    for marker in self.markers:
+                        marker.delete()
+                    
+                    for address in [self.start] + route + [self.end]:
+                        response_geocode = self.maps.geocode(address)
+                        lat, lng = response_geocode[0]['geometry']['location']['lat'], response_geocode[0]['geometry']['location']['lng']
+                        marker = self.map_widget.set_position(lat, lng, marker=True)
+                        self.markers.append(marker)
 
                     #update ui
                     total_distance_km = round(sum([leg["distance"]["value"]/1000 for leg in legs]),1)
