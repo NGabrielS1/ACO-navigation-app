@@ -6,12 +6,13 @@ import numpy as np
 import pandas as pd
 from uuid import uuid4
 import matplotlib.pyplot as plt
-from itertools import permutations
+from itertools import permutations, pairwise
 
 import googlemaps
 import customtkinter as ctk
 from datetime import datetime
 from dotenv import load_dotenv
+from tkinter import messagebox
 from tkintermapview import TkinterMapView
 from PIL import Image, ImageFont, ImageDraw
 
@@ -68,7 +69,7 @@ class App(ctk.CTk):
         self.small_logo = ctk.CTkLabel(self.header, image=self.header_logo, width=213, height=79, text=None, fg_color="transparent")
 
         #input bar
-        self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_route)
+        self.input_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("input dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_destinations)
         self.check_btn = ctk.CTkButton(self.inputbar, image=self.custom_text("check dests", self.BOLD, "#ffffff", 19.8, "#5170ff"), text=None, fg_color="#5170ff", hover_color="#5170ff", width=148.2, height=35.4, corner_radius=28.8 ,command=self.edit_destinations)
         self.start_lbl = ctk.CTkLabel(self.inputbar, image=self.custom_text("Add Start", self.BOLD, "#727272", 12.7, "#f3f2f2"), text=None, fg_color="#f3f2f2", width=148.2, height=14.4)
         self.start_value = ctk.CTkEntry(self.inputbar, placeholder_text="required", width=148.2, height=35.4, font=("Helvetica", 19.8))
@@ -85,7 +86,7 @@ class App(ctk.CTk):
         self.end_time_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("end time", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
         self.end_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("11.27", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
 
-        self.startnav_btn = ctk.CTkButton(self.outputbar, image=self.custom_text("start nav", self.BOLD, "#ffffff", 18, "#ff4848"), text=None, fg_color="#ff4848", hover_color="#ff4848", width=148.2, height=35.4, corner_radius=28.8 ,command=None)
+        self.startnav_btn = ctk.CTkButton(self.outputbar, image=self.custom_text("start nav", self.BOLD, "#ffffff", 18, "#ff4848"), text=None, fg_color="#ff4848", hover_color="#ff4848", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_route)
 
         #map
         self.map_widget = TkinterMapView(self.map, height=532.8, width=506.4)
@@ -186,18 +187,63 @@ class App(ctk.CTk):
         edit_window = edit_dest_window(self, self.maps, self.BOLD, self.REGULAR)
     
     def get_route(self):
-        session_token = uuid4().hex
-        autocomplete = self.maps.places_autocomplete(input_text=self.start_value.get(), session_token=session_token)
-        start_list = [i["description"] for i in autocomplete]
-        autocomplete = self.maps.places_autocomplete(input_text=self.end_value.get(), session_token=session_token)
-        end_list = [i["description"] for i in autocomplete]
+        if self.start_value.get() and self.end_value.get() and len(self.packages):
+            #get start and end
+            session_token = uuid4().hex
+            autocomplete = self.maps.places_autocomplete(input_text=self.start_value.get(), session_token=session_token)
+            start_list = [i["description"] for i in autocomplete]
+            autocomplete = self.maps.places_autocomplete(input_text=self.end_value.get(), session_token=session_token)
+            end_list = [i["description"] for i in autocomplete]
 
-        self.start = start_list[0]
-        self.end = end_list[0]
+            if not len(start_list) == 0 and not len(end_list) == 0:
 
-        dist_start = self.start
-        if len(self.priority): dist_start = self.priority[-1]
-        dist_matrix = self.get_dist_matrix(dist_start, self.packages)
+                self.start = start_list[0]
+                self.end = end_list[0]
+
+                if (not self.start in self.priority and not self.start in self.packages) and (not self.end in self.priority and not self.end in self.packages):
+                    #set starting point
+                    dist_start = self.start
+                    if len(self.priority): dist_start = self.priority[-1]
+
+                    #get results
+                    dist_matrix = self.get_dist_matrix(dist_start, self.packages)
+                    dist, route = self.ant_colony_optimization(dist_matrix, self.init_p, self.alpha, self.beta, self.evap_rate, self.added_p, self.ants)
+
+                    #complete route and complete dist
+
+                    #add end
+                    matrix = self.maps.distance_matrix(route[-1], self.end,  mode="driving", units="metric")
+                    dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
+                    route = route + [self.end]
+
+                    #add priorities if any
+                    if len(self.priority):
+                        #if more than one priority
+                        if len(self.priority) > 1:
+                            temp = [self.start] + self.priority
+
+                            for pair in pairwise(temp):
+                                matrix = self.maps.distance_matrix(pair[0], pair[1],  mode="driving", units="metric")
+                                dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
+
+                            route = [self.start] + self.priority[0:-1] + route
+                        #if only one priority
+                        else:
+                            matrix = self.maps.distance_matrix(self.start, self.priority[0],  mode="driving", units="metric")
+                            dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
+                            route = [self.start] + route
+                    
+                    #draw map
+                    #check if you can get dist from route
+
+                else:
+                    messagebox.showerror("Overlapping Requirements", "End and Start must not match Destinations")
+            
+            else:
+                messagebox.showerror("Missing Requirements", "Could not find End or Start")
+
+        else:
+            messagebox.showerror("Missing Requirements", "Must add Start, End, or Destinations")
     
     def get_dist_matrix(self, start, points):
         points = [start] + points
@@ -217,6 +263,59 @@ class App(ctk.CTk):
                 dist_matrix.loc[point1, point2] = dist
         
         return dist_matrix
+    
+    def ant_colony_optimization(self, dist_matrix, eta, alpha, beta, p, q, num_ants):
+        #create pheromone table
+        pheromones = dist_matrix.copy()
+        pheromones[pheromones!=0] = eta
+
+        points = dist_matrix.columns.to_list()
+        best_dist = float('inf')
+        best_dist_idx = None
+        routes = []
+
+        #run iterations
+        for l in range(num_ants):
+
+            #refresh variables
+            tread = []
+            dist = 0
+
+            choices = points.copy()
+            current = choices[0]
+            choices.remove(current)
+
+            cur_route = [current]
+
+            #ant moves and gets route data
+            for i in range(len(points)-1):
+                probabilities = [] #get probabilities
+                denominator = sum([(pheromones.loc[current, choice2]**alpha) / (dist_matrix.loc[current, choice2]**beta) for choice2 in choices])
+                for choice in choices:
+                    numerator = (pheromones.loc[current, choice]**alpha) / (dist_matrix.loc[current, choice]**beta)
+                    probabilities.append(numerator/denominator)
+                
+                next = np.random.choice(a=choices, p=probabilities) #list next destination and move on
+                tread.append([current,next])
+                dist += dist_matrix.loc[current, next]
+                current = next
+                cur_route.append(current)
+                choices.remove(current)
+
+            #update pheromones
+            pheromones[pheromones!=0] *= (1-p) #evaporate
+            for edge in tread:
+                pheromones.loc[edge[0], edge[1]] += (q/dist)
+                pheromones.loc[edge[1], edge[0]] += (q/dist)
+            
+            #track best
+            if dist < best_dist: 
+                best_dist = dist
+                best_dist_idx = l
+            routes.append(cur_route)
+        
+        return best_dist, routes[best_dist_idx]
+
 
 #input destinations
 class input_dest_window(ctk.CTkToplevel):
@@ -318,12 +417,12 @@ class edit_dest_window(ctk.CTkToplevel):
         self.package_btns = []
 
         for i, p_package in enumerate(self.priority):
-            button = ctk.CTkButton(self.frame, text=p_package, corner_radius=None, fg_color="#e0bbbb", text_color="black", hover_color="#6c6969", width=400, height=36, command=lambda i=i: self.select(i, "priority"))
+            button = ctk.CTkButton(self.frame, text=p_package[:55], corner_radius=None, fg_color="#e0bbbb", text_color="black", hover_color="#6c6969", width=400, height=36, command=lambda i=i: self.select(i, "priority"))
             button.grid(row=i, column=0, pady=(0,2), sticky="we")
             self.priority_btns.append(button)
         num = len(self.priority)
         for i, package in enumerate(self.packages):
-            button = ctk.CTkButton(self.frame, text=package, corner_radius=None, fg_color="#dbd4d4", text_color="black", hover_color="#6c6969", width=400, height=36, command=lambda i=i: self.select(i, "package"))
+            button = ctk.CTkButton(self.frame, text=package[:55], corner_radius=None, fg_color="#dbd4d4", text_color="black", hover_color="#6c6969", width=400, height=36, command=lambda i=i: self.select(i, "package"))
             button.grid(row=num+i, column=0, pady=(0,2), sticky="we")
             self.package_btns.append(button)
         if len(self.selected):
