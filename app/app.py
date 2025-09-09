@@ -244,7 +244,7 @@ class App(ctk.CTk):
                     for p, address in enumerate([self.start] + route + [self.end]):
                         response_geocode = self.maps.geocode(address)
                         lat, lng = response_geocode[0]['geometry']['location']['lat'], response_geocode[0]['geometry']['location']['lng']
-                        marker = self.map_widget.set_position(lat, lng, marker=True)
+                        marker = self.map_widget.set_position(lat, lng, marker=True, font=("Arial", 12, "bold"), text_color="black")
                         if p == 0:
                             marker.set_text("Start")
                         elif p == len([self.start] + route + [self.end])-1:
