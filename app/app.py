@@ -93,9 +93,11 @@ class App(ctk.CTk):
 
         #map
         self.map_widget = TkinterMapView(self.map, height=532.8, width=506.4)
-        self.map_widget.set_position(42.48144, -71.15103)
+        # self.map_widget.set_position(42.48144, -71.15103)
+        self.map_widget.set_position(-3.93395, 121.87922)
         self.map_widget.set_tile_server("https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", max_zoom=22)
-        self.map_widget.set_zoom(19)
+        # self.map_widget.set_zoom(19)
+        self.map_widget.set_zoom(4)
 
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=0)
@@ -379,6 +381,8 @@ class input_dest_window(ctk.CTkToplevel):
     def get_results(self, event):
         autocomplete = self.maps.places_autocomplete(input_text=self.entry.get(), session_token=self.session_token)
         self.list = []
+        for button in self.buttons:
+            button.configure(text="")
         self.list = [i["description"] for i in autocomplete]
         if len(self.list) > 0:
             self.list = self.list[:4]
