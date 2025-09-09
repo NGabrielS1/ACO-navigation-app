@@ -152,7 +152,7 @@ class App(ctk.CTk):
         self.total_dist_lbl.grid(row=0, column=1, pady=(50, 10))
         self.total_dist_val.grid(row=1, column=1)
         self.total_time_lbl.grid(row=2, column=1, pady=10)
-        self.total_time_val.grid(row=3, column=1, pady=(0,20))
+        self.total_time_val.grid(row=3, column=1, pady=(0,20), sticky="we")
         self.start_time_lbl.grid(row=4, column=1, pady=10)
         self.start_time_val.grid(row=5, column=1)
         self.end_time_lbl.grid(row=6, column=1, pady=10)
@@ -193,9 +193,9 @@ class App(ctk.CTk):
         if self.start_value.get() and self.end_value.get() and len(self.packages):
             #get start and end
             session_token = uuid4().hex
-            autocomplete = self.maps.places_autocomplete(input_text=self.start_value.get(), session_token=session_token)
+            autocomplete = self.maps.places_autocomplete(input_text=self.start_value.get(), session_token=session_token, components={"country": "ID"})
             start_list = [i["description"] for i in autocomplete]
-            autocomplete = self.maps.places_autocomplete(input_text=self.end_value.get(), session_token=session_token)
+            autocomplete = self.maps.places_autocomplete(input_text=self.end_value.get(), session_token=session_token, components={"country": "ID"})
             end_list = [i["description"] for i in autocomplete]
 
             if not len(start_list) == 0 and not len(end_list) == 0:
@@ -379,7 +379,7 @@ class input_dest_window(ctk.CTkToplevel):
         self.entry.grid(row=1, column=1, pady=(0, 20))
 
     def get_results(self, event):
-        autocomplete = self.maps.places_autocomplete(input_text=self.entry.get(), session_token=self.session_token)
+        autocomplete = self.maps.places_autocomplete(input_text=self.entry.get(), session_token=self.session_token, components={"country": "ID"})
         self.list = []
         for button in self.buttons:
             button.configure(text="")
