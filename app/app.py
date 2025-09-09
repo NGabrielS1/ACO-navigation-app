@@ -1,16 +1,11 @@
 import os
-import time
-import math
-import random
 import numpy as np
 import pandas as pd
 from uuid import uuid4
-import matplotlib.pyplot as plt
-from itertools import permutations, pairwise
+from datetime import datetime, timedelta
 
 import googlemaps
 import customtkinter as ctk
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from tkinter import messagebox
 from tkintermapview import TkinterMapView
