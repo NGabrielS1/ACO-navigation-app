@@ -30,7 +30,7 @@ class App(ctk.CTk):
 
     start = None
     priority = []
-    packages = ['Third Space Pilates - Alam Sutera, Jalan Lingkar Barat Alam Sutera 15143, East Panunggangan, Tangerang City, Banten, Indonesia', 'Kedai Nasi Campur Kenanga, Alam sutra, Jalan Jalur Sutera Boulevard Ruko Palmyra Square, RT.002/RW.014, Kunciran, Tangerang City, Banten, Indonesia']
+    packages = []
     end = None
     list_of_points = []
     markers = []
