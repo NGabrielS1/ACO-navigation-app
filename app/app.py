@@ -34,6 +34,7 @@ class App(ctk.CTk):
     end = None
     list_of_points = []
     markers = []
+    path = None
 
     init_p = 0.2
     alpha = 1
@@ -236,7 +237,8 @@ class App(ctk.CTk):
 
                     bounds = info[0]["bounds"]
                     self.map_widget.fit_bounding_box((bounds['northeast']['lat'],bounds['southwest']['lng']), (bounds['southwest']['lat'],bounds['northeast']['lng']))
-                    path = self.map_widget.set_path(self.list_of_points)
+                    if self.path: self.path.delete()
+                    self.path = self.map_widget.set_path(self.list_of_points)
 
                     #put markers
                     for marker in self.markers:
