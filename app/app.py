@@ -95,7 +95,7 @@ class App(ctk.CTk):
         self.map_widget = TkinterMapView(self.map, height=532.8, width=506.4)
         # self.map_widget.set_position(42.48144, -71.15103)
         self.map_widget.set_position(-3.93395, 121.87922)
-        self.map_widget.set_tile_server("https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", max_zoom=21)
+        self.map_widget.set_tile_server("https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", max_zoom=22)
         # self.map_widget.set_zoom(19)
         self.map_widget.set_zoom(4)
 
