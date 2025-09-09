@@ -10,7 +10,7 @@ from itertools import permutations, pairwise
 
 import googlemaps
 import customtkinter as ctk
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from tkinter import messagebox
 from tkintermapview import TkinterMapView
@@ -32,6 +32,7 @@ class App(ctk.CTk):
     priority = []
     packages = ['Third Space Pilates - Alam Sutera, Jalan Lingkar Barat Alam Sutera 15143, East Panunggangan, Tangerang City, Banten, Indonesia', 'Kedai Nasi Campur Kenanga, Alam sutra, Jalan Jalur Sutera Boulevard Ruko Palmyra Square, RT.002/RW.014, Kunciran, Tangerang City, Banten, Indonesia']
     end = None
+    list_of_points = []
 
     init_p = 0.2
     alpha = 1
@@ -82,9 +83,9 @@ class App(ctk.CTk):
         self.total_time_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("total time", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
         self.total_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("5 hours\n13 mins", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=80.4)
         self.start_time_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("start time", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
-        self.start_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("06.14", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
+        self.start_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("06:14", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
         self.end_time_lbl = ctk.CTkLabel(self.outputbar, image=self.custom_text("end time", self.BOLD, "#727272", 12.7, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=14.4)
-        self.end_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("11.27", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
+        self.end_time_val = ctk.CTkLabel(self.outputbar, image=self.custom_text("11:27", self.BOLD, "#ffffff", 42, "#dbd4d4"), text=None, fg_color="#dbd4d4", width=148.2, height=40.2)
 
         self.startnav_btn = ctk.CTkButton(self.outputbar, image=self.custom_text("start nav", self.BOLD, "#ffffff", 18, "#ff4848"), text=None, fg_color="#ff4848", hover_color="#ff4848", width=148.2, height=35.4, corner_radius=28.8 ,command=self.get_route)
 
@@ -180,8 +181,6 @@ class App(ctk.CTk):
     
     def get_destinations(self):
         input_window = input_dest_window(self, self.maps, self.BOLD, self.REGULAR)
-        print(self.priority)
-        print(self.packages)
     
     def edit_destinations(self):
         edit_window = edit_dest_window(self, self.maps, self.BOLD, self.REGULAR)
@@ -207,34 +206,66 @@ class App(ctk.CTk):
 
                     #get results
                     dist_matrix = self.get_dist_matrix(dist_start, self.packages)
-                    dist, route = self.ant_colony_optimization(dist_matrix, self.init_p, self.alpha, self.beta, self.evap_rate, self.added_p, self.ants)
+                    _, route = self.ant_colony_optimization(dist_matrix, self.init_p, self.alpha, self.beta, self.evap_rate, self.added_p, self.ants)
 
                     #complete route and complete dist
 
-                    #add end
-                    matrix = self.maps.distance_matrix(route[-1], self.end,  mode="driving", units="metric")
-                    dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
-                    route = route + [self.end]
+                    # #add end
+                    # matrix = self.maps.distance_matrix(route[-1], self.end,  mode="driving", units="metric")
+                    # dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
+                    # route = route + [self.end]
 
                     #add priorities if any
                     if len(self.priority):
                         #if more than one priority
                         if len(self.priority) > 1:
-                            temp = [self.start] + self.priority
+                            # temp = [self.start] + self.priority
 
-                            for pair in pairwise(temp):
-                                matrix = self.maps.distance_matrix(pair[0], pair[1],  mode="driving", units="metric")
-                                dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
+                            # for pair in pairwise(temp):
+                            #     matrix = self.maps.distance_matrix(pair[0], pair[1],  mode="driving", units="metric")
+                            #     dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
 
-                            route = [self.start] + self.priority[0:-1] + route
+                            # route = [self.start] + self.priority[0:-1] + route
+                            route = self.priority[0:-1] + route
                         #if only one priority
-                        else:
-                            matrix = self.maps.distance_matrix(self.start, self.priority[0],  mode="driving", units="metric")
-                            dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
-                            route = [self.start] + route
+                        # else:
+                            # matrix = self.maps.distance_matrix(self.start, self.priority[0],  mode="driving", units="metric")
+                            # dist += matrix['rows'][0]['elements'][0]['distance']['value']/1000
+                            # route = [self.start] + route
+                    else:
+                        route.pop(0)
                     
                     #draw map
-                    #check if you can get dist from route
+                    departure_time = datetime.now()
+                    info = self.maps.directions(origin=self.start, destination=self.end,
+                                                mode="driving", waypoints=route, units="metric",
+                                                departure_time=departure_time)
+                    
+                    legs = info[0]["legs"]
+                    self.list_of_points = []
+                    for leg in legs:
+                        steps = leg["steps"]
+                        for step in steps:
+                            polyline = step["polyline"]["points"]
+                            decoded = googlemaps.convert.decode_polyline(polyline)
+                            self.list_of_points += [point for point in decoded]
+                    self.list_of_points = [(point["lat"], point["lng"]) for point in self.list_of_points]
+
+                    bounds = info[0]["bounds"]
+                    self.map_widget.fit_bounding_box((bounds['northeast']['lat'],bounds['southwest']['lng']), (bounds['southwest']['lat'],bounds['northeast']['lng']))
+                    path = self.map_widget.set_path(self.list_of_points)
+
+                    #update ui
+                    total_distance_km = round(sum([leg["distance"]["value"]/1000 for leg in legs]),1)
+                    total_time_min = round(sum(leg["duration"]["value"]/60 for leg in legs))
+                    time_min = total_time_min % 60
+                    time_hour = total_time_min // 60
+
+                    self.total_dist_val.configure(image=self.custom_text(f"{total_distance_km} km", self.BOLD, "#ffffff", 42, "#dbd4d4"))
+                    self.total_time_val.configure(image=self.custom_text(f"{time_hour} hours\n{time_min} mins", self.BOLD, "#ffffff", 42, "#dbd4d4"))
+
+                    self.start_time_val.configure(image=self.custom_text(departure_time.strftime("%H:%M"), self.BOLD, "#ffffff", 42, "#dbd4d4"))
+                    self.end_time_val.configure(image=self.custom_text((departure_time+timedelta(hours=time_hour, minutes=time_min)).strftime("%H:%M"), self.BOLD, "#ffffff", 42, "#dbd4d4"))
 
                 else:
                     messagebox.showerror("Overlapping Requirements", "End and Start must not match Destinations")
@@ -352,6 +383,7 @@ class input_dest_window(ctk.CTkToplevel):
 
     def get_results(self, event):
         autocomplete = self.maps.places_autocomplete(input_text=self.entry.get(), session_token=self.session_token)
+        self.list = []
         self.list = [i["description"] for i in autocomplete]
         if len(self.list) > 0:
             self.list = self.list[:4]
