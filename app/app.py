@@ -241,10 +241,16 @@ class App(ctk.CTk):
                     for marker in self.markers:
                         marker.delete()
                     
-                    for address in [self.start] + route + [self.end]:
+                    for p, address in enumerate([self.start] + route + [self.end]):
                         response_geocode = self.maps.geocode(address)
                         lat, lng = response_geocode[0]['geometry']['location']['lat'], response_geocode[0]['geometry']['location']['lng']
                         marker = self.map_widget.set_position(lat, lng, marker=True)
+                        if p == 0:
+                            marker.set_text("Start")
+                        elif p == len([self.start] + route + [self.end])-1:
+                            marker.set_text("End")
+                        else:
+                            marker.set_text(str(p))
                         self.markers.append(marker)
 
                     #update ui
