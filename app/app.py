@@ -188,9 +188,9 @@ class App(ctk.CTk):
         if self.start_value.get() and self.end_value.get() and len(self.packages):
             #get start and end
             session_token = uuid4().hex
-            autocomplete = self.maps.places_autocomplete(input_text=self.start_value.get(), session_token=session_token, components={"country": "ID"})
+            autocomplete = self.maps.places_autocomplete(input_text=self.start_value.get(), session_token=session_token)
             start_list = [i["description"] for i in autocomplete]
-            autocomplete = self.maps.places_autocomplete(input_text=self.end_value.get(), session_token=session_token, components={"country": "ID"})
+            autocomplete = self.maps.places_autocomplete(input_text=self.end_value.get(), session_token=session_token)
             end_list = [i["description"] for i in autocomplete]
 
             if not len(start_list) == 0 and not len(end_list) == 0:
@@ -380,7 +380,7 @@ class input_dest_window(ctk.CTkToplevel):
         self.entry.grid(row=1, column=1, pady=(0, 20))
 
     def get_results(self, event):
-        autocomplete = self.maps.places_autocomplete(input_text=self.entry.get(), session_token=self.session_token, components={"country": "ID"})
+        autocomplete = self.maps.places_autocomplete(input_text=self.entry.get(), session_token=self.session_token)
         self.list = []
         for button in self.buttons:
             button.configure(text="")
